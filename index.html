@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TomFit - Nutrition Plan</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root{
+      /* Brand greens (TomFit-style) */
+      --g1:#002e21;
+      --g2:#003b2a;
+      --g3:#01291d;
+
+      --accent:#0a7f57;
+      --accent2:#004f38;
+
+      --text:#0d1b15;
+      --muted:#6f7b75;
+
+      --card:#ffffff;
+      --soft:#f5f6f6;
+      --soft2:#f8f9f9;
+
+      --shadow: 0 20px 80px rgba(0,0,0,.32);
+      --radius: 20px;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(120deg, var(--g2), var(--g3), var(--g2));
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: var(--text);
+    }
+
+    .container {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 34px;
+      max-width: 760px;
+      width: 100%;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .logo{
+      width: 220px;
+      max-width: 70%;
+      height: auto;
+      margin: 2px auto 8px;
+      display: block;
+    }
+
+    .subtitle {
+      color: #7a7a7a;
+      font-size: 14px;
+    }
+
+    .search-wrap {
+      margin: 16px 0 18px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #e5e7e7;
+      border-radius: 12px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .results {
+      border: 1px solid #eef0f0;
+      border-radius: 12px;
+      overflow: hidden;
+      max-height: 220px;
+      overflow-y: auto;
+      display: none;
+      background: #fff;
+    }
+
+    .result-item {
+      padding: 12px 14px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      border-top: 1px solid #f1f3f3;
+      font-size: 13px;
+    }
+
+    .result-item:first-child { border-top: none; }
+    .result-item:hover { background: #f7f8f8; }
+
+    .result-name { font-weight: 700; color: #1a1a1a; }
+    .result-meta { color: #6c6c6c; white-space: nowrap; }
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      background: var(--soft);
+      border-radius: 14px;
+      margin-bottom: 16px;
+    }
+
+    .avatar {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: linear-gradient(120deg, var(--g2), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 20px; font-weight: 700;
+      flex: 0 0 auto;
+    }
+
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-weight: 800; font-size: 16px; color: #1e1e1e; }
+    .user-stats { font-size: 12px; color: #5f6a65; margin-top: 2px; }
+    .user-extra { font-size: 12px; color: #7a8580; margin-top: 4px; }
+
+    .sex-select {
+      flex: 0 0 auto;
+      display: grid;
+      gap: 6px;
+      justify-items: end;
+    }
+
+    .sex-select label { font-size: 11px; color: #6c7671; }
+
+    select {
+      padding: 9px 10px;
+      border-radius: 12px;
+      border: 1px solid #e5e7e7;
+      background: white;
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .buttons { display: flex; gap: 10px; margin-bottom: 16px; }
+
+    .btn {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s ease, filter 0.2s ease;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn:hover { filter: brightness(1.02); }
+
+    .btn-cut { background: #d94b3e; }
+    .btn-cut.active { background: #b83a2f; transform: scale(1.03); }
+
+    .btn-maintain { background: var(--accent2); }
+    .btn-maintain.active { background: #003f2d; transform: scale(1.03); }
+
+    .btn-gain { background: var(--accent); }
+    .btn-gain.active { background: #086a49; transform: scale(1.03); }
+
+    .main-card {
+      background: linear-gradient(120deg, var(--g2), var(--accent2));
+      color: white;
+      padding: 26px;
+      border-radius: 18px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .label { font-size: 14px; opacity: .92; margin-bottom: 10px; }
+    .calories { font-size: 56px; font-weight: 900; margin-bottom: 4px; letter-spacing: .5px; }
+    .unit { font-size: 14px; opacity: .9; }
+
+    .details {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .detail-card {
+      background: var(--soft2);
+      padding: 14px;
+      border-radius: 14px;
+      text-align: center;
+      border: 1px solid #eef0f0;
+    }
+
+    .detail-label { font-size: 12px; color: #7a8580; margin-bottom: 8px; }
+    .detail-value { font-size: 18px; font-weight: 900; color: var(--accent2); }
+
+    .macros {
+      background: var(--soft2);
+      padding: 18px;
+      border-radius: 14px;
+      margin-bottom: 16px;
+      border: 1px solid #eef0f0;
+    }
+
+    .macros-title { font-weight: 800; margin-bottom: 12px; color: #1e1e1e; font-size: 14px; }
+
+    .macro-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: white;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      border-left: 4px solid var(--accent2);
+      font-size: 14px;
+      border: 1px solid #f0f2f2;
+    }
+
+    .macro-name { font-weight: 700; color: #1f1f1f; }
+    .macro-value { font-weight: 900; color: var(--accent2); }
+
+    .refresh-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(120deg, var(--g2), var(--accent2));
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 800;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .refresh-btn:hover { filter: brightness(1.03); }
+
+    .note {
+      background: #e8f4f0;
+      border-left: 4px solid var(--accent2);
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      color: #0f3b2b;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 700px) {
+      .container { padding: 22px; }
+      .details { grid-template-columns: 1fr; }
+      .profile-header { align-items: flex-start; }
+      .sex-select { justify-items: start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <!-- Put logo-tomfit.png next to this HTML file -->
+      <img class="logo" src="./tomfitsing.png" alt="TOMFIT" />
+      <p class="subtitle">Nutrition Plan</p>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="search-wrap">
+      <input
+        id="search"
+        class="search-input"
+        type="text"
+        placeholder="Search client (first name / last name)…"
+        autocomplete="off"
+      />
+      <div id="results" class="results"></div>
+    </div>
+
+    <div class="profile-header">
+      <div class="avatar" id="avatar">?</div>
+
+      <div class="user-info">
+        <div class="user-name" id="userName">Select a client from the list</div>
+        <div class="user-stats" id="userStats">-</div>
+        <div class="user-extra" id="userExtra">-</div>
+      </div>
+
+      <div class="sex-select">
+        <label for="sex">Sex for calculations</label>
+        <select id="sex">
+          <option value="F">Female</option>
+          <option value="M">Male</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button class="btn btn-cut" id="btnCut" onclick="calc('CUT', this)">📉 Cut</button>
+      <button class="btn btn-maintain active" id="btnMaintain" onclick="calc('MAINTAIN', this)">➡️ Maintain</button>
+      <button class="btn btn-gain" id="btnGain" onclick="calc('GAIN', this)">📈 Bulk</button>
+    </div>
+
+    <div id="content">
+      <div class="main-card">
+        <div class="label">📊 Daily calories</div>
+        <div class="calories" id="kcal">-</div>
+        <div class="unit">kcal / day</div>
+      </div>
+
+      <div class="details">
+        <div class="detail-card">
+          <div class="detail-label">Activity (PAL)</div>
+          <div class="detail-value" id="act">-</div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-label">BMR</div>
+          <div class="detail-value" id="bmr">-</div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-label">TDEE</div>
+          <div class="detail-value" id="tdee">-</div>
+        </div>
+      </div>
+
+      <div class="macros">
+        <div class="macros-title">🥗 Daily macronutrients</div>
+        <div class="macro-item">
+          <span class="macro-name">🥚 Protein</span>
+          <span class="macro-value" id="prot">-</span>
+        </div>
+        <div class="macro-item">
+          <span class="macro-name">🍳 Fat</span>
+          <span class="macro-value" id="fat">-</span>
+        </div>
+        <div class="macro-item">
+          <span class="macro-name">🍚 Carbs</span>
+          <span class="macro-value" id="carb">-</span>
+        </div>
+      </div>
+
+      <button class="refresh-btn" onclick="recalc()">🔄 Recalculate</button>
+    </div>
+
+    <div class="note">
+      ℹ️ Type a name and click a result from the list. Calculations use Mifflin-St Jeor (BMR) + PAL derived from avg_sessions_per_week.
+    </div>
+  </div>
+
+  <script>
+    // ===== CLIENT DATA =====
+    const USERS = [
+  { id: 1,  tp_firstname: "Thomas",   tp_lastname: "Stämpfli",     tp_weight: 92,  tp_height: 186, age: 65, total_sessions: 727, avg_sessions_per_week: "6,61" },
+  { id: 2,  tp_firstname: "Krystian", tp_lastname: "Kula",         tp_weight: 90,  tp_height: 185, age: 37, total_sessions: 207, avg_sessions_per_week: "3,57" },
+  { id: 3,  tp_firstname: "Ola",      tp_lastname: "Tarbaj",       tp_weight: 96,  tp_height: 163, age: 28, total_sessions: 4,   avg_sessions_per_week: "2,80" },
+  { id: 4,  tp_firstname: "Jakub",    tp_lastname: "Cebrzyna",     tp_weight: 106, tp_height: 195, age: 38, total_sessions: 272, avg_sessions_per_week: "2,57" },
+  { id: 5,  tp_firstname: "Agata",    tp_lastname: "Świestowska",  tp_weight: 68,  tp_height: 169, age: 40, total_sessions: 8,   avg_sessions_per_week: "2,55" },
+  { id: 6,  tp_firstname: "Kinga",    tp_lastname: "Kordek",       tp_weight: 52,  tp_height: 172, age: 39, total_sessions: 48,  avg_sessions_per_week: "2,51" },
+  { id: 7,  tp_firstname: "Damian",   tp_lastname: "Worobel",      tp_weight: 86,  tp_height: 183, age: 41, total_sessions: 18,  avg_sessions_per_week: "2,33" },
+  { id: 8,  tp_firstname: "Joanna",   tp_lastname: "Kwaśny",       tp_weight: 90,  tp_height: 165, age: 61, total_sessions: 19,  avg_sessions_per_week: "2,11" },
+  { id: 9,  tp_firstname: "Bartek",   tp_lastname: "Rudowski",     tp_weight: 82,  tp_height: 194, age: 29, total_sessions: 6,   avg_sessions_per_week: "2,10" },
+  { id: 10, tp_firstname: "Piotr",    tp_lastname: "Zarębski",     tp_weight: 78,  tp_height: 178, age: 52, total_sessions: 17,  avg_sessions_per_week: "2,09" },
+  { id: 11, tp_firstname: "Irek",     tp_lastname: "Nowak",        tp_weight: 108, tp_height: 173, age: 64, total_sessions: 16,  avg_sessions_per_week: "2,07" },
+  { id: 12, tp_firstname: "Hanna",    tp_lastname: "Tsikhanchuk",  tp_weight: 68,  tp_height: 173, age: 26, total_sessions: 15,  avg_sessions_per_week: "2,02" },
+  { id: 13, tp_firstname: "Arkadiusz",tp_lastname: "Moskal",       tp_weight: 109, tp_height: 185, age: 29, total_sessions: 30,  avg_sessions_per_week: "2,02" },
+  { id: 14, tp_firstname: "Bartosz",  tp_lastname: "Zarębski",     tp_weight: 60,  tp_height: 173, age: 19, total_sessions: 8,   avg_sessions_per_week: "2,00" },
+  { id: 15, tp_firstname: "Marzena",  tp_lastname: "Krzeczek",     tp_weight: 75,  tp_height: 170, age: 49, total_sessions: 2,   avg_sessions_per_week: "2,00" },
+  { id: 16, tp_firstname: "Paweł",    tp_lastname: "Piłat",        tp_weight: 70,  tp_height: 177, age: 29, total_sessions: 27,  avg_sessions_per_week: "1,97" },
+  { id: 17, tp_firstname: "Karolina", tp_lastname: "Mrozek",       tp_weight: 70,  tp_height: 163, age: 40, total_sessions: 25,  avg_sessions_per_week: "1,94" },
+  { id: 18, tp_firstname: "Łukasz",   tp_lastname: "Sadowski",     tp_weight: 91,  tp_height: 178, age: 38, total_sessions: 16,  avg_sessions_per_week: "1,93" },
+  { id: 19, tp_firstname: "Iwona",    tp_lastname: "Lisiak",       tp_weight: 82,  tp_height: 160, age: 39, total_sessions: 14,  avg_sessions_per_week: "1,88" },
+  { id: 20, tp_firstname: "Marcelo",  tp_lastname: "Santos",       tp_weight: 82,  tp_height: 175, age: 39, total_sessions: 15,  avg_sessions_per_week: "1,84" },
+  { id: 21, tp_firstname: "Aleksandra", tp_lastname: "Sadowska",   tp_weight: 68,  tp_height: 175, age: 32, total_sessions: 9,   avg_sessions_per_week: "1,75" },
+  { id: 22, tp_firstname: "Marzena",  tp_lastname: "Miśkiewicz",   tp_weight: 61,  tp_height: 160, age: 36, total_sessions: 43,  avg_sessions_per_week: "1,69" },
+  { id: 23, tp_firstname: "Joanna",   tp_lastname: "Tatarczuch-Pawlik", tp_weight: 73, tp_height: 173, age: 44, total_sessions: 37, avg_sessions_per_week: "1,67" },
+  { id: 24, tp_firstname: "Anita",    tp_lastname: "Pociecha-Piaskowy",  tp_weight: 59, tp_height: 164, age: 44, total_sessions: 23, avg_sessions_per_week: "1,64" },
+  { id: 25, tp_firstname: "Magdalena",tp_lastname: "Środulska",    tp_weight: 69,  tp_height: 176, age: 35, total_sessions: 6,   avg_sessions_per_week: "1,62" },
+  { id: 26, tp_firstname: "Sergei",   tp_lastname: "Semenov",      tp_weight: 83,  tp_height: 180, age: 28, total_sessions: 12,  avg_sessions_per_week: "1,62" },
+  { id: 27, tp_firstname: "Ela",      tp_lastname: "Czyż",         tp_weight: 78,  tp_height: 160, age: 42, total_sessions: 30,  avg_sessions_per_week: "1,58" },
+  { id: 28, tp_firstname: "Robert",   tp_lastname: "Adamski",      tp_weight: 75,  tp_height: 192, age: 30, total_sessions: 11,  avg_sessions_per_week: "1,57" },
+  { id: 29, tp_firstname: "Kuba",     tp_lastname: "Brhel",        tp_weight: 60,  tp_height: 180, age: 17, total_sessions: 8,   avg_sessions_per_week: "1,51" },
+  { id: 30, tp_firstname: "Izabela",  tp_lastname: "Tarbaj",       tp_weight: 47,  tp_height: 158, age: 22, total_sessions: 2,   avg_sessions_per_week: "1,40" },
+  { id: 31, tp_firstname: "Michał",   tp_lastname: "Bereziński",   tp_weight: 81,  tp_height: 182, age: 42, total_sessions: 28,  avg_sessions_per_week: "1,35" },
+  { id: 32, tp_firstname: "Anita",    tp_lastname: "Pasternak",    tp_weight: 52,  tp_height: 159, age: 29, total_sessions: 29,  avg_sessions_per_week: "1,35" },
+  { id: 33, tp_firstname: "Magdalena",tp_lastname: "OSOBA",        tp_weight: 66,  tp_height: 158, age: 68, total_sessions: 32,  avg_sessions_per_week: "1,30" },
+  { id: 34, tp_firstname: "Aneta",    tp_lastname: "Kołodziej",    tp_weight: 99,  tp_height: 167, age: 27, total_sessions: 14,  avg_sessions_per_week: "1,24" },
+];
+
+    // ===== STATE =====
+    let selectedUser = null;
+    let currentGoal = "MAINTAIN";
+
+    // ===== UI refs =====
+    const searchInput = document.getElementById("search");
+    const resultsEl = document.getElementById("results");
+
+    function toFloatPL(x) {
+      if (typeof x === "number") return x;
+      if (typeof x !== "string") return NaN;
+      return parseFloat(x.replace(",", "."));
+    }
+
+    // normalize for Polish diacritics etc.
+    function norm(str) {
+      return (str || "")
+        .toString()
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function initials(first, last) {
+      const f = (first || "").trim().charAt(0).toUpperCase();
+      const l = (last || "").trim().charAt(0).toUpperCase();
+      return (f + l).trim() || "?";
+    }
+
+    // avg_sessions_per_week -> PAL
+    function palFromAvgSessions(avg) {
+      const a = toFloatPL(avg);
+      if (!isFinite(a)) return null;
+
+      if (a < 0.5) return 1.2;     // sedentary
+      if (a < 1.5) return 1.375;   // light
+      if (a < 2.5) return 1.55;    // moderate
+      if (a < 4.0) return 1.725;   // very active
+      return 1.9;                  // extra active
+    }
+
+    function palLabel(pal) {
+      if (!pal) return "-";
+      if (pal <= 1.2) return "SEDENTARY (1.20)";
+      if (pal <= 1.375) return "LIGHT (1.375)";
+      if (pal <= 1.55) return "MODERATE (1.55)";
+      if (pal <= 1.725) return "VERY (1.725)";
+      return "EXTRA (1.90)";
+    }
+
+    // Mifflin-St Jeor BMR
+    function bmrMifflin({ sex, weight, height, age }) {
+      const s = sex === "M" ? 5 : -161;
+      return Math.round(10 * weight + 6.25 * height - 5 * age + s);
+    }
+
+    function clearOutputs() {
+      document.getElementById("kcal").textContent = "-";
+      document.getElementById("act").textContent = "-";
+      document.getElementById("bmr").textContent = "-";
+      document.getElementById("tdee").textContent = "-";
+      document.getElementById("prot").textContent = "-";
+      document.getElementById("fat").textContent = "-";
+      document.getElementById("carb").textContent = "-";
+    }
+
+    function renderProfile(u) {
+      selectedUser = u;
+
+      document.getElementById("avatar").textContent = initials(u.tp_firstname, u.tp_lastname);
+      document.getElementById("userName").textContent = `${u.tp_firstname} ${u.tp_lastname}`;
+      document.getElementById("userStats").textContent = `${u.age} years • ${u.tp_height} cm, ${u.tp_weight} kg`;
+      document.getElementById("userExtra").textContent =
+        `${u.hub} • sessions: ${u.total_sessions} • avg/week: ${toFloatPL(u.avg_sessions_per_week).toFixed(2)}`;
+
+      recalc();
+    }
+
+    function setActiveButton(goal, btnEl) {
+      document.querySelectorAll(".btn").forEach(b => b.classList.remove("active"));
+      if (btnEl) btnEl.classList.add("active");
+      currentGoal = goal;
+    }
+
+    function calc(goal, btnEl) {
+      setActiveButton(goal, btnEl);
+
+      if (!selectedUser) {
+        document.getElementById("kcal").textContent = "Select a client";
+        document.getElementById("act").textContent = "-";
+        document.getElementById("bmr").textContent = "-";
+        document.getElementById("tdee").textContent = "-";
+        document.getElementById("prot").textContent = "-";
+        document.getElementById("fat").textContent = "-";
+        document.getElementById("carb").textContent = "-";
+        return;
+      }
+
+      const sex = document.getElementById("sex").value;
+      const pal = palFromAvgSessions(selectedUser.avg_sessions_per_week);
+      if (!pal) { clearOutputs(); return; }
+
+      const bmr = bmrMifflin({
+        sex,
+        weight: selectedUser.tp_weight,
+        height: selectedUser.tp_height,
+        age: selectedUser.age
+      });
+
+      const tdee = Math.round(bmr * pal);
+
+      let kcal;
+      if (goal === "CUT") kcal = tdee - 400;
+      else if (goal === "GAIN") kcal = tdee + 300;
+      else kcal = tdee;
+
+      // Simple macro logic
+      const prot = Math.round(selectedUser.tp_weight * 2);
+      const fat = Math.max(40, Math.round((kcal * 0.25) / 9));
+      const carb = Math.max(0, Math.round((kcal - prot * 4 - fat * 9) / 4));
+
+      document.getElementById("kcal").textContent = kcal;
+      document.getElementById("act").textContent = palLabel(pal);
+      document.getElementById("bmr").textContent = bmr;
+      document.getElementById("tdee").textContent = tdee;
+      document.getElementById("prot").textContent = prot + "g";
+      document.getElementById("fat").textContent = fat + "g";
+      document.getElementById("carb").textContent = carb + "g";
+    }
+
+    function recalc() {
+      const btn =
+        currentGoal === "CUT" ? document.getElementById("btnCut") :
+        currentGoal === "GAIN" ? document.getElementById("btnGain") :
+        document.getElementById("btnMaintain");
+
+      calc(currentGoal, btn);
+    }
+
+    function filterUsers(q) {
+      const query = norm(q);
+      if (!query) return [];
+      return USERS.filter(u => {
+        const full = norm(`${u.tp_firstname} ${u.tp_lastname}`);
+        const rev  = norm(`${u.tp_lastname} ${u.tp_firstname}`);
+        return full.includes(query) || rev.includes(query);
+      });
+    }
+
+    function renderResults(list, queryText) {
+      resultsEl.innerHTML = "";
+      const hasQuery = norm(queryText).length > 0;
+      resultsEl.style.display = hasQuery ? "block" : "none";
+      if (!hasQuery) return;
+
+      if (!list.length) {
+        const row = document.createElement("div");
+        row.className = "result-item";
+        row.style.cursor = "default";
+        row.innerHTML = `
+          <div>
+            <div class="result-name">No results</div>
+            <div class="result-meta">Please type a client name from the list</div>
+          </div>
+          <div class="result-meta">—</div>
+        `;
+        resultsEl.appendChild(row);
+        return;
+      }
+
+      list.slice(0, 30).forEach(u => {
+        const row = document.createElement("div");
+        row.className = "result-item";
+        row.innerHTML = `
+          <div>
+            <div class="result-name">${u.tp_firstname} ${u.tp_lastname}</div>
+            <div class="result-meta">${u.hub}</div>
+          </div>
+          <div class="result-meta">${u.tp_weight}kg • ${u.tp_height}cm • ${u.age}y</div>
+        `;
+        row.addEventListener("click", () => {
+          renderProfile(u);
+          resultsEl.style.display = "none";
+          searchInput.value = `${u.tp_firstname} ${u.tp_lastname}`;
+        });
+        resultsEl.appendChild(row);
+      });
+    }
+
+    searchInput.addEventListener("input", (e) => {
+      const q = e.target.value;
+      const list = filterUsers(q);
+      renderResults(list, q);
+    });
+
+    // Enter selects the first result
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const list = filterUsers(searchInput.value);
+        if (list.length) {
+          renderProfile(list[0]);
+          resultsEl.style.display = "none";
+          searchInput.value = `${list[0].tp_firstname} ${list[0].tp_lastname}`;
+        }
+      }
+    });
+
+    document.getElementById("sex").addEventListener("change", () => recalc());
+
+    window.onload = function () {
+      clearOutputs();
+    };
+  </script>
+</body>
+</html>
